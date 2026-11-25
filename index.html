@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEXUS SOLUCIÓNES | Sección Azul - Directorio y Mapa Digital Loreto, B.C.S.</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0a2540;
+      --cobalt: #1d4ed8;
+      --blue-bright: #2563eb;
+      --sky: #eff6ff;
+      --sky-border: #bfdbfe;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --white: #ffffff;
+      --whatsapp: #16a34a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: #f8fafc; color: var(--text-main); line-height: 1.5; }
+
+    header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--cobalt) 100%);
+      color: var(--white);
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 4px 12px rgba(10, 37, 64, 0.15);
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    .brand-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    header h1 { font-size: 1.65rem; font-weight: 800; letter-spacing: -0.02em; }
+    header p { font-size: 0.9rem; color: #dbeafe; }
+    .header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.6rem 1.1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--white); color: var(--navy); }
+    .btn-primary:hover { background: #e0f2fe; }
+    .btn-wa { background: var(--whatsapp); color: var(--white); }
+    .btn-wa:hover { background: #15803d; }
+    .btn-cobalt { background: var(--cobalt); color: var(--white); }
+    .btn-cobalt:hover { background: #1e40af; }
+
+    .controls-bar {
+      max-width: 1280px;
+      margin: 1.25rem auto;
+      padding: 0 1.5rem;
+    }
+    .search-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.9rem;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      padding: 0.75rem 1rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.6rem;
+      font-size: 0.95rem;
+      background: var(--white);
+    }
+    .search-input:focus { outline: 2px solid var(--blue-bright); border-color: transparent; }
+    .filter-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid var(--sky-border);
+      background: var(--white);
+      color: var(--navy);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill.active, .pill:hover {
+      background: var(--cobalt);
+      color: var(--white);
+      border-color: var(--cobalt);
+    }
+
+    .main-grid {
+      max-width: 1280px;
+      margin: 0 auto 2.5rem;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 1.25rem;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .directory-panel {
+      background: var(--white);
+      border: 1px solid #e2e8f0;
+      border-radius: 0.85rem;
+      padding: 1rem;
+      max-height: 620px;
+      overflow-y: auto;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+    .directory-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--navy);
+    }
+    .biz-card {
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--cobalt);
+      border-radius: 0.65rem;
+      padding: 0.9rem;
+      margin-bottom: 0.75rem;
+      background: var(--white);
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+    .biz-card:hover, .biz-card.selected {
+      background: var(--sky);
+      border-color: var(--blue-bright);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(29, 78, 216, 0.1);
+    }
+    .biz-cat {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--cobalt);
+      margin-bottom: 0.2rem;
+    }
+    .biz-title { font-size: 1rem; font-weight: 700; color: var(--navy); }
+    .biz-desc { font-size: 0.83rem; color: var(--text-muted); margin: 0.3rem 0 0.6rem; }
+    .biz-meta { font-size: 0.78rem; color: #334155; display: flex; flex-direction: column; gap: 0.2rem; }
+    .biz-actions { margin-top: 0.65rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .btn-xs { padding: 0.35rem 0.65rem; font-size: 0.76rem; border-radius: 0.4rem; }
+
+    .map-wrapper {
+      background: var(--white);
+      border: 1px solid #e2e8f0;
+      border-radius: 0.85rem;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+    #map { height: 620px; width: 100%; z-index: 1; }
+    .map-hint {
+      background: var(--sky);
+      color: var(--navy);
+      font-size: 0.8rem;
+      padding: 0.55rem 1rem;
+      border-top: 1px solid var(--sky-border);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .packages-section {
+      max-width: 1280px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+    }
+    .section-title-box {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .section-title-box h2 { font-size: 1.5rem; font-weight: 800; color: var(--navy); }
+    .section-title-box p { color: var(--text-muted); font-size: 0.95rem; }
+    .packages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+    .pkg-card {
+      background: var(--white);
+      border: 1px solid #cbd5e1;
+      border-radius: 0.85rem;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pkg-card.featured {
+      border: 2px solid var(--cobalt);
+      background: linear-gradient(180deg, #eff6ff 0%, #ffffff 35%);
+      box-shadow: 0 10px 24px rgba(29, 78, 216, 0.12);
+    }
+    .pkg-badge {
+      display: inline-block;
+      background: var(--cobalt);
+      color: var(--white);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      margin-bottom: 0.6rem;
+      width: fit-content;
+    }
+    .pkg-card h3 { font-size: 1.2rem; color: var(--navy); margin-bottom: 0.4rem; }
+    .pkg-card ul { list-style: none; margin: 0.9rem 0 1.25rem; font-size: 0.88rem; color: var(--text-muted); }
+    .pkg-card ul li { padding: 0.3rem 0; border-bottom: 1px dashed #e2e8f0; }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 37, 64, 0.65);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--white);
+      border-radius: 0.9rem;
+      max-width: 560px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 1.5rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+    .modal-box h3 { color: var(--navy); margin-bottom: 0.75rem; }
+    .form-group { margin-bottom: 0.75rem; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--navy); }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.45rem;
+      font-size: 0.88rem;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+
+    footer {
+      background: var(--navy);
+      color: #cbd5e1;
+      padding: 2rem 1.5rem;
+      font-size: 0.85rem;
+    }
+    .footer-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+    footer strong { color: var(--white); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <span class="brand-badge">Sección Azul • Directorio Oficial</span>
+      <h1>NEXUS SOLUCIÓNES — Loreto, B.C.S.</h1>
+      <p>Directorio Comercial, Servicios Profesionales y Mapa Digital Interactivo</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" id="adminLoginBtn" onclick="openLogin()">Acceso administrador</button><button class="btn btn-primary" id="addClientBtn" style="display:none" onclick="openModal()">+ Agregar negocio</button><button class="btn btn-primary" id="logoutBtn" style="display:none" onclick="signOutAdmin()">Cerrar sesión</button>
+      <a class="btn btn-wa" href="https://wa.me/526131373729?text=Hola%20NEXUS%20SOLUCI%C3%93NES,%20quiero%20anunciar%20mi%20negocio%20en%20la%20Secci%C3%B3n%20Azul%20y%20Mapa%20Digital" target="_blank">Anúnciate por WhatsApp</a>
+    </div>
+  </div>
+</header>
+
+<section class="controls-bar">
+  <div class="search-row">
+    <input type="text" id="searchInput" class="search-input" placeholder="Buscar negocio, servicio, colonia o palabra clave en Loreto..." oninput="renderAll()" />
+  </div>
+  <div class="filter-pills" id="filterPills">
+    <button class="pill active" data-cat="Todos" onclick="setCategory('Todos', this)">Todos los giros</button>
+    <button class="pill" data-cat="Oficina NEXUS" onclick="setCategory('Oficina NEXUS', this)">Oficina NEXUS</button>
+    <button class="pill" data-cat="Construcción y Mantenimiento" onclick="setCategory('Construcción y Mantenimiento', this)">Construcción y Mantenimiento</button>
+    <button class="pill" data-cat="Turismo y Excursiones" onclick="setCategory('Turismo y Excursiones', this)">Turismo y Excursiones</button>
+    <button class="pill" data-cat="Conectividad y Seguridad" onclick="setCategory('Conectividad y Seguridad', this)">Conectividad y Seguridad</button>
+    <button class="pill" data-cat="Salud y Servicios Profesionales" onclick="setCategory('Salud y Servicios Profesionales', this)">Salud y Profesionales</button>
+    <button class="pill" data-cat="Trámites y Gestoría" onclick="setCategory('Trámites y Gestoría', this)">Trámites y Gestoría</button>
+    <button class="pill" data-cat="Ventas" onclick="setCategory('Ventas', this)">Ventas</button>
+  </div>
+</section>
+
+<main class="main-grid">
+  <aside class="directory-panel">
+    <div class="directory-header">
+      <span>Negocios y Servicios Activos</span>
+      <span id="countBadge">0 resultados</span>
+    </div>
+    <div id="directoryList"></div>
+  </aside>
+
+  <div class="map-wrapper">
+    <div id="map"></div>
+    <div class="map-hint">
+      <span><strong>Tip operativo:</strong> Directorio comercial y mapa interactivo de Loreto, Baja California Sur.</span>
+      <span id="coordsDisplay">Loreto, B.C.S. (26.0124, -111.3432)</span>
+    </div>
+  </div>
+</main>
+
+<section class="packages-section">
+  <div class="section-title-box">
+    <h2>Espacios Publicitarios en la Sección Azul NEXUS</h2>
+    <p>Posiciona tu negocio frente a residentes, inversionistas y visitantes en Loreto y Baja California Sur</p>
+  </div>
+  <div class="packages-grid">
+    <div class="pkg-card">
+      <div>
+        <span class="pkg-badge">Plan Inicial</span>
+        <h3>Pin Básico en Directorio</h3>
+        <ul>
+          <li>Ubicación exacta en el Mapa Digital de Loreto</li>
+          <li>Ficha comercial en la Sección Azul por categoría</li>
+          <li>Dirección, horario y botón directo a llamada</li>
+        </ul>
+      </div>
+      <a class="btn btn-cobalt" href="https://wa.me/526131373729?text=Info%20Plan%20Inicial%20Pin%20B%C3%A1sico%20Secci%C3%B3n%20Azul%20NEXUS" target="_blank">Solicitar Cotización</a>
+    </div>
+
+    <div class="pkg-card featured">
+      <div>
+        <span class="pkg-badge">Más Solicitado</span>
+        <h3>Pin Destacado + Flyer Promocional</h3>
+        <ul>
+          <li>Posicionamiento prioritario en su categoría</li>
+          <li>Diseño de flyer publicitario profesional incluido</li>
+          <li>Botón directo a WhatsApp y ruta en Google Maps</li>
+          <li>Difusión mensual en redes de NEXUS SOLUCIÓNES</li>
+        </ul>
+      </div>
+      <a class="btn btn-wa" href="https://wa.me/526131373729?text=Info%20Plan%20Pin%20Destacado%20%2B%20Flyer%20Secci%C3%B3n%20Azul%20NEXUS" target="_blank">Contratar por WhatsApp</a>
+    </div>
+
+    <div class="pkg-card">
+      <div>
+        <span class="pkg-badge">Empresarial</span>
+        <h3>Paquete Web + Mapa + Redes</h3>
+        <ul>
+          <li>Todo lo incluido en Pin Destacado</li>
+          <li>Landing page o presencia web vinculada a nexussoluciones.mx</li>
+          <li>Campaña visual y video corto promocional</li>
+        </ul>
+      </div>
+      <a class="btn btn-cobalt" href="https://wa.me/526131373729?text=Info%20Paquete%20Web%20%2B%20Mapa%20%2B%20Redes%20NEXUS" target="_blank">Solicitar Cotización</a>
+    </div>
+  </div>
+</section>
+
+<div class="modal-backdrop" id="loginModal">
+  <div class="modal-box">
+    <h3>Acceso privado · Sección Azul</h3>
+    <form id="loginForm" onsubmit="loginAdmin(event)">
+      <div class="form-group"><label>Correo de administradora</label><input type="email" id="adminEmail" required autocomplete="username" /></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="adminPassword" required autocomplete="current-password" /></div>
+      <p id="loginMessage" style="font-size:.82rem;color:#b91c1c;margin:.5rem 0;"></p>
+      <div style="display:flex;justify-content:flex-end;gap:.6rem;margin-top:1rem;">
+        <button type="button" class="btn" style="background:#e2e8f0;" onclick="closeLogin()">Cancelar</button>
+        <button type="submit" class="btn btn-cobalt">Entrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="addModal">
+  <div class="modal-box">
+    <h3>Registrar Cliente en Sección Azul</h3>
+    <form id="clientForm" onsubmit="saveClient(event)">
+      <div class="form-group">
+        <label>Nombre del Negocio o Servicio</label>
+        <input type="text" id="cName" required placeholder="Ej. Ferretería del Centro" />
+      </div>
+      <div class="form-group">
+        <label>Categoría (Sección Azul)</label>
+        <select id="cCat">
+          <option value="Construcción y Mantenimiento">Construcción y Mantenimiento</option>
+          <option value="Turismo y Excursiones">Turismo y Excursiones</option>
+          <option value="Conectividad y Seguridad">Conectividad y Seguridad</option>
+          <option value="Salud y Servicios Profesionales">Salud y Servicios Profesionales</option>
+          <option value="Trámites y Gestoría">Trámites y Gestoría</option>
+          <option value="Oficina NEXUS">Oficina NEXUS</option>
+          <option value="Ventas">Ventas</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Descripción / Promoción</label>
+        <textarea id="cDesc" rows="2" required placeholder="Servicios principales, promociones o especialidad..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Dirección en Loreto, B.C.S.</label>
+        <input type="text" id="cAddr" required placeholder="Calle, número y colonia" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>WhatsApp (10 dígitos)</label>
+          <input type="text" id="cWa" required placeholder="6131401258" />
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" id="cPhone" placeholder="6131401258" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Horario (opcional)</label><input type="text" id="cHours" placeholder="Ej. Lun-Vie 9:00 a 18:00" /></div>
+        <div class="form-group"><label>Sitio web (opcional)</label><input type="url" id="cWebsite" placeholder="https://" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Facebook (opcional)</label><input type="url" id="cFacebook" placeholder="https://facebook.com/..." /></div>
+        <div class="form-group"><label>Instagram (opcional)</label><input type="url" id="cInstagram" placeholder="https://instagram.com/..." /></div>
+      </div>
+      <div class="form-group"><label>Enlace del logotipo (opcional)</label><input type="url" id="cLogo" placeholder="https://..." /></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Latitud</label>
+          <input type="number" step="any" id="cLat" required value="26.0124" />
+        </div>
+        <div class="form-group">
+          <label>Longitud</label>
+          <input type="number" step="any" id="cLng" required value="-111.3432" />
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:0.6rem; margin-top:1rem;">
+        <button type="button" class="btn" style="background:#e2e8f0;" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-cobalt" id="saveClientBtn">Guardar en Mapa</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div>
+      <strong>NEXUS SOLUCIÓNES</strong><br />
+      Bulevar Salvatierra #72 (entre Ayuntamiento e Independencia), Col. Centro, C.P. 23880, Loreto, Baja California Sur, México.
+    </div>
+    <div>
+      <strong>Contacto Directo:</strong><br />
+      Tel. Oficina (ESP): 613 140 1258 | ENG: 613 141 1086<br />
+      WhatsApp: 613 137 3729 | Correo: nexussoluciones08@gmail.com | Web: nexussoluciones.mx
+    </div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // CONFIGURACIÓN DEL PROYECTO SECCIÓN AZUL
+  const SUPABASE_URL = 'https://hoanagwkyegifwirskkv.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_tmJsNBEaNF8hEouNx4l2Iw_RjS8pf2t';
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let clients = [];
+  let activeCategory = 'Todos';
+  let markers = {};
+  let mapLoaded = false;
+  let isAdmin = false;
+  let currentUser = null;
+  let editingId = null;
+
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://tiles.openfreemap.org/styles/liberty',
+    center: [-111.3432, 26.0124],
+    zoom: 14,
+    attributionControl: true
+  });
+  map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  map.on('load', async function() { mapLoaded = true; await loadBusinesses(); });
+  map.on('click', function(e) {
+    if (!isAdmin || !document.getElementById('addModal').classList.contains('open')) return;
+    const lat = e.lngLat.lat.toFixed(6), lng = e.lngLat.lng.toFixed(6);
+    document.getElementById('coordsDisplay').textContent = `Coordenadas seleccionadas: ${lat}, ${lng}`;
+    document.getElementById('cLat').value = lat;
+    document.getElementById('cLng').value = lng;
+  });
+
+  function safeText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  function fromRow(row) {
+    return { id: row.id, name: row.nombre || '', category: row.categoria || '', desc: row.descripcion || '',
+      phone: row.telefono || '', whatsapp: row.whatsapp || '', address: row.direccion || '',
+      lat: Number(row.lat), lng: Number(row.lng), hours: row.horario || '', website: row.sitio_web || '',
+      facebook: row.facebook || '', instagram: row.instagram || '', logo: row.logo_url || '' };
+  }
+  async function loadBusinesses() {
+    const { data, error } = await db.from('negocios').select('*').eq('activo', true).order('created_at', {ascending:false});
+    if (error) {
+      console.error(error);
+      document.getElementById('directoryList').innerHTML = '<p style="padding:1rem;color:#b91c1c">No se pudo cargar el directorio. Revisa la conexión con Supabase.</p>';
+      return;
+    }
+    clients = (data || []).map(fromRow).filter(c => Number.isFinite(c.lat) && Number.isFinite(c.lng));
+    renderAll();
+  }
+  async function refreshAdminStatus() {
+    const { data: { user } } = await db.auth.getUser();
+    currentUser = user || null;
+    isAdmin = false;
+    if (currentUser) {
+      const { data, error } = await db.from('admin_users').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+      if (!error && data) isAdmin = true;
+      else if (error) console.warn('No se pudo comprobar admin_users:', error.message);
+    }
+    document.getElementById('adminLoginBtn').style.display = isAdmin ? 'none' : 'inline-flex';
+    document.getElementById('addClientBtn').style.display = isAdmin ? 'inline-flex' : 'none';
+    document.getElementById('logoutBtn').style.display = isAdmin ? 'inline-flex' : 'none';
+    renderAll();
+  }
+  function setCategory(cat, btn) {
+    activeCategory = cat;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active'); renderAll();
+  }
+  function renderAll() {
+    const query = document.getElementById('searchInput').value.toLowerCase().trim();
+    const listEl = document.getElementById('directoryList');
+    listEl.innerHTML = '';
+    if (!mapLoaded) return;
+    Object.values(markers).forEach(item => item.remove()); markers = {};
+    const filtered = clients.filter(c => {
+      const matchCat = activeCategory === 'Todos' || c.category === activeCategory;
+      const matchText = !query || [c.name,c.desc,c.address,c.category].some(v => String(v||'').toLowerCase().includes(query));
+      return matchCat && matchText;
+    });
+    document.getElementById('countBadge').textContent = `${filtered.length} resultado${filtered.length === 1 ? '' : 's'}`;
+    if (!filtered.length) listEl.innerHTML = '<p style="padding:.8rem;color:#64748b">Aún no hay negocios publicados en esta categoría.</p>';
+    filtered.forEach(c => {
+      const card = document.createElement('div'); card.className = 'biz-card';
+      const logo = c.logo ? `<img src="${safeText(c.logo)}" alt="Logotipo de ${safeText(c.name)}" style="max-width:76px;max-height:54px;object-fit:contain;margin-bottom:8px">` : '';
+      card.innerHTML = `${logo}<div class="biz-cat">${safeText(c.category)}</div><div class="biz-title">${safeText(c.name)}</div><div class="biz-desc">${safeText(c.desc)}</div><div class="biz-meta"><span>📍 ${safeText(c.address)}</span><span>📞 ${safeText(c.phone || c.whatsapp)}</span>${c.hours ? `<span>🕒 ${safeText(c.hours)}</span>` : ''}</div><div class="biz-actions"><a class="btn btn-wa btn-xs" href="https://wa.me/52${encodeURIComponent(String(c.whatsapp||'').replace(/\D/g,''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a><a class="btn btn-cobalt btn-xs" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Cómo llegar</a>${c.website ? `<a class="btn btn-cobalt btn-xs" href="${safeText(c.website)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Sitio web</a>` : ''}${isAdmin ? `<button class="btn btn-cobalt btn-xs" onclick="event.stopPropagation();editClient('${c.id}')">Editar</button><button class="btn btn-xs" style="background:#fee2e2;color:#991b1b" onclick="event.stopPropagation();deleteClient('${c.id}')">Eliminar</button>` : ''}</div>`;
+      card.onclick = () => focusClient(c.id); listEl.appendChild(card);
+      const popup = new maplibregl.Popup({offset:24}).setHTML(`<div style="min-width:210px"><strong>${safeText(c.name)}</strong><p>${safeText(c.category)}</p><p>${safeText(c.address)}</p><a href="https://wa.me/52${encodeURIComponent(String(c.whatsapp||'').replace(/\D/g,''))}" target="_blank" rel="noopener">Contactar por WhatsApp</a></div>`);
+      const marker = new maplibregl.Marker({color:'#1d4ed8'}).setLngLat([c.lng,c.lat]).setPopup(popup).addTo(map);
+      markers[c.id] = marker;
+    });
+  }
+  function focusClient(id) { const c = clients.find(x => String(x.id) === String(id)); if (!c || !markers[id]) return; map.flyTo({center:[c.lng,c.lat],zoom:17}); markers[id].togglePopup(); }
+  function openLogin() { document.getElementById('loginMessage').textContent=''; document.getElementById('loginModal').classList.add('open'); }
+  function closeLogin() { document.getElementById('loginModal').classList.remove('open'); }
+  async function loginAdmin(e) {
+    e.preventDefault(); const msg = document.getElementById('loginMessage'); msg.style.color='#b91c1c'; msg.textContent='Verificando acceso…';
+    const email=document.getElementById('adminEmail').value.trim(), password=document.getElementById('adminPassword').value;
+    const {error} = await db.auth.signInWithPassword({email,password});
+    if (error) { msg.textContent='No se pudo iniciar sesión. Verifica tu correo y contraseña.'; return; }
+    await refreshAdminStatus();
+    if (!isAdmin) { await db.auth.signOut(); await refreshAdminStatus(); msg.textContent='Esta cuenta no está autorizada como administradora de Sección Azul.'; return; }
+    document.getElementById('loginForm').reset(); closeLogin();
+  }
+  async function signOutAdmin() { await db.auth.signOut(); await refreshAdminStatus(); }
+  function openModal() {
+    if (!isAdmin) return;
+    editingId = null; document.getElementById('clientForm').reset();
+    document.getElementById('cLat').value='26.0124'; document.getElementById('cLng').value='-111.3432';
+    document.getElementById('saveClientBtn').textContent='Guardar en Mapa';
+    document.getElementById('addModal').classList.add('open');
+  }
+  function closeModal() { document.getElementById('addModal').classList.remove('open'); }
+  function formPayload() {
+    return { nombre:document.getElementById('cName').value.trim(), categoria:document.getElementById('cCat').value,
+      descripcion:document.getElementById('cDesc').value.trim(), direccion:document.getElementById('cAddr').value.trim(),
+      whatsapp:document.getElementById('cWa').value.replace(/\D/g,''), telefono:document.getElementById('cPhone').value.replace(/\D/g,''),
+      lat:parseFloat(document.getElementById('cLat').value), lng:parseFloat(document.getElementById('cLng').value),
+      horario:document.getElementById('cHours').value.trim() || null, sitio_web:document.getElementById('cWebsite').value.trim() || null,
+      facebook:document.getElementById('cFacebook').value.trim() || null, instagram:document.getElementById('cInstagram').value.trim() || null,
+      logo_url:document.getElementById('cLogo').value.trim() || null, activo:true };
+  }
+  async function saveClient(e) {
+    e.preventDefault(); if (!isAdmin) { alert('Debes iniciar sesión como administradora.'); return; }
+    const payload=formPayload(); const btn=document.getElementById('saveClientBtn'); btn.disabled=true; btn.textContent='Guardando…';
+    let result;
+    if (editingId) result=await db.from('negocios').update(payload).eq('id',editingId).select().single();
+    else result=await db.from('negocios').insert(payload).select().single();
+    btn.disabled=false; btn.textContent=editingId ? 'Actualizar negocio' : 'Guardar en Mapa';
+    if (result.error) { alert('No se pudo guardar el negocio en Supabase: '+result.error.message); return; }
+    document.getElementById('clientForm').reset(); closeModal(); editingId=null; await loadBusinesses();
+    const saved=fromRow(result.data); focusClient(saved.id);
+  }
+  async function editClient(id) {
+    if (!isAdmin) return; const c=clients.find(x=>String(x.id)===String(id)); if(!c) return;
+    editingId=c.id;
+    document.getElementById('cName').value=c.name; document.getElementById('cCat').value=c.category;
+    document.getElementById('cDesc').value=c.desc; document.getElementById('cAddr').value=c.address;
+    document.getElementById('cWa').value=c.whatsapp; document.getElementById('cPhone').value=c.phone;
+    document.getElementById('cLat').value=c.lat; document.getElementById('cLng').value=c.lng;
+    document.getElementById('cHours').value=c.hours; document.getElementById('cWebsite').value=c.website;
+    document.getElementById('cFacebook').value=c.facebook; document.getElementById('cInstagram').value=c.instagram;
+    document.getElementById('cLogo').value=c.logo;
+    document.getElementById('saveClientBtn').textContent='Actualizar negocio'; document.getElementById('addModal').classList.add('open');
+  }
+  async function deleteClient(id) {
+    if (!isAdmin || !confirm('¿Eliminar este negocio del directorio?')) return;
+    const {error}=await db.from('negocios').delete().eq('id',id);
+    if(error){alert('No se pudo eliminar: '+error.message);return;} await loadBusinesses();
+  }
+  document.addEventListener('DOMContentLoaded', async () => {
+    if (SUPABASE_ANON_KEY === 'PEGA_AQUI_TU_CLAVE_PUBLISHABLE_DE_SUPABASE') {
+      document.getElementById('directoryList').innerHTML='<p style="padding:1rem;color:#b91c1c">Falta configurar la clave publishable de Supabase para conectar el directorio.</p>';
+      return;
+    }
+    await refreshAdminStatus();
+    db.auth.onAuthStateChange(() => { setTimeout(refreshAdminStatus,0); });
+  });
+</script>
+</body>
+</html>
