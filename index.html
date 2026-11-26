@@ -468,17 +468,7 @@
         <div class="form-group"><label>Facebook (opcional)</label><input type="url" id="cFacebook" placeholder="https://facebook.com/..." /></div>
         <div class="form-group"><label>Instagram (opcional)</label><input type="url" id="cInstagram" placeholder="https://instagram.com/..." /></div>
       </div>
-     <div class="form-row">
-  <div class="form-group">
-    <label>Logotipo del negocio</label>
-    <input type="file" id="cLogoFile" accept="image/*" />
-  </div>
-  <div class="form-group">
-    <label>Fotografías del negocio (máximo 5)</label>
-    <input type="file" id="cPhotosFile" accept="image/*" multiple />
-  </div>
-</div>
-<input type="hidden" id="cLogo" />
+      <div class="form-group"><label>Enlace del logotipo (opcional)</label><input type="url" id="cLogo" placeholder="https://..." /></div>
       <div class="form-row">
         <div class="form-group">
           <label>Latitud</label>
@@ -518,36 +508,7 @@
   const SUPABASE_URL = 'https://hoanagwkyegifwirskkv.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_tmJsNBEaNF8hEouNx4l2Iw_RjS8pf2t';
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-async function uploadBusinessImage(file, folder) {
-  if (!file) return null;
 
-  if (!isAdmin) {
-    throw new Error('Solo la administradora puede subir imágenes.');
-  }
-
-  if (!file.type.startsWith('image/')) {
-    throw new Error('El archivo debe ser una imagen.');
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    throw new Error('Cada imagen debe pesar máximo 5 MB.');
-  }
-
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const filePath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`;
-
-  const { data, error } = await db.storage
-    .from('sección-azul')
-    .upload(filePath, file);
-
-  if (error) throw error;
-
-  const { data: publicData } = db.storage
-    .from('sección-azul')
-    .getPublicUrl(data.path);
-
-  return publicData.publicUrl;
-}
   let clients = [];
   let activeCategory = 'Todos';
   let markers = {};
@@ -580,7 +541,7 @@ async function uploadBusinessImage(file, folder) {
     return { id: row.id, name: row.nombre || '', category: row.categoria || '', desc: row.descripcion || '',
       phone: row.telefono || '', whatsapp: row.whatsapp || '', address: row.direccion || '',
       lat: Number(row.lat), lng: Number(row.lng), hours: row.horario || '', website: row.sitio_web || '',
-      facebook: row.facebook || '', instagram: row.instagram || '', logo: row.logo_url || '', photos: row.fotos || () };
+      facebook: row.facebook || '', instagram: row.instagram || '', logo: row.logo_url || '' };
   }
   async function loadBusinesses() {
     const { data, error } = await db.from('negocios').select('*').eq('activo', true).order('created_at', {ascending:false});
@@ -629,8 +590,7 @@ async function uploadBusinessImage(file, folder) {
       const logo = c.logo ? `<img src="${safeText(c.logo)}" alt="Logotipo de ${safeText(c.name)}" style="max-width:76px;max-height:54px;object-fit:contain;margin-bottom:8px">` : '';
       card.innerHTML = `${logo}<div class="biz-cat">${safeText(c.category)}</div><div class="biz-title">${safeText(c.name)}</div><div class="biz-desc">${safeText(c.desc)}</div><div class="biz-meta"><span>📍 ${safeText(c.address)}</span><span>📞 ${safeText(c.phone || c.whatsapp)}</span>${c.hours ? `<span>🕒 ${safeText(c.hours)}</span>` : ''}</div><div class="biz-actions"><a class="btn btn-wa btn-xs" href="https://wa.me/52${encodeURIComponent(String(c.whatsapp||'').replace(/\D/g,''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a><a class="btn btn-cobalt btn-xs" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Cómo llegar</a>${c.website ? `<a class="btn btn-cobalt btn-xs" href="${safeText(c.website)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Sitio web</a>` : ''}${isAdmin ? `<button class="btn btn-cobalt btn-xs" onclick="event.stopPropagation();editClient('${c.id}')">Editar</button><button class="btn btn-xs" style="background:#fee2e2;color:#991b1b" onclick="event.stopPropagation();deleteClient('${c.id}')">Eliminar</button>` : ''}</div>`;
       card.onclick = () => focusClient(c.id); listEl.appendChild(card);
-      const popup = new maplibregl.Popup({offset:24}).setHTML(`<div style="min-width:210px"><strong>${safeText(c.name)}</strong><p>${safeText(c.category)}</p>${(c.photos || []).slice(0, 5).map(url => '<img src="' + safeText(url) + '" style="width:100%;max-height:130px;object-fit:cover;border-radius:8px;margin:4px 0;">').join('')}
-      <p>${safeText(c.address)}</p><a href="https://wa.me/52${encodeURIComponent(String(c.whatsapp||'').replace(/\D/g,''))}" target="_blank" rel="noopener">Contactar por WhatsApp</a></div>`);
+      const popup = new maplibregl.Popup({offset:24}).setHTML(`<div style="min-width:210px"><strong>${safeText(c.name)}</strong><p>${safeText(c.category)}</p><p>${safeText(c.address)}</p><a href="https://wa.me/52${encodeURIComponent(String(c.whatsapp||'').replace(/\D/g,''))}" target="_blank" rel="noopener">Contactar por WhatsApp</a></div>`);
       const marker = new maplibregl.Marker({color:'#1d4ed8'}).setLngLat([c.lng,c.lat]).setPopup(popup).addTo(map);
       markers[c.id] = marker;
     });
@@ -666,81 +626,16 @@ async function uploadBusinessImage(file, folder) {
       logo_url:document.getElementById('cLogo').value.trim() || null, activo:true };
   }
   async function saveClient(e) {
-  e.preventDefault();
-
-  if (!isAdmin) {
-    alert('Debes iniciar sesión como administradora.');
-    return;
-  }
-
-  const btn = document.getElementById('saveClientBtn');
-  const logoFile = document.getElementById('cLogoFile').files[0];
-  const photoFiles = Array.from(document.getElementById('cPhotosFile').files);
-
-  if (photoFiles.length > 5) {
-    alert('Puedes subir máximo 5 fotografías.');
-    return;
-  }
-
-  const originalText = editingId ? 'Actualizar negocio' : 'Guardar en Mapa';
-  btn.disabled = true;
-  btn.textContent = 'Subiendo imágenes...';
-
-  try {
-    const existing = editingId
-      ? clients.find(x => String(x.id) === String(editingId))
-      : null;
-
-    const payload = formPayload();
-    const folderId = editingId || 'nuevo-' + Date.now();
-
-    if (logoFile) {
-      payload.logo_url = await uploadBusinessImage(logoFile, `negocios/${folderId}/logo`);
-    } else {
-      payload.logo_url = existing?.logo || payload.logo_url || null;
-    }
-
-    if (photoFiles.length) {
-      payload.fotos = await Promise.all(
-        photoFiles.map(file =>
-          uploadBusinessImage(file, `negocios/${folderId}/fotos`)
-        )
-      );
-    } else {
-      payload.fotos = existing?.photos || [];
-    }
-
+    e.preventDefault(); if (!isAdmin) { alert('Debes iniciar sesión como administradora.'); return; }
+    const payload=formPayload(); const btn=document.getElementById('saveClientBtn'); btn.disabled=true; btn.textContent='Guardando…';
     let result;
-
-    if (editingId) {
-      result = await db.from('negocios')
-        .update(payload)
-        .eq('id', editingId)
-        .select()
-        .single();
-    } else {
-      result = await db.from('negocios')
-        .insert(payload)
-        .select()
-        .single();
-    }
-
-    if (result.error) throw result.error;
-
-    const saved = fromRow(result.data);
-    document.getElementById('clientForm').reset();
-    closeModal();
-    editingId = null;
-    await loadBusinesses();
-    focusClient(saved.id);
-
-  } catch (error) {
-    alert('No se pudo guardar el negocio: ' + error.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = editingId ? 'Actualizar negocio' : 'Guardar en Mapa';
+    if (editingId) result=await db.from('negocios').update(payload).eq('id',editingId).select().single();
+    else result=await db.from('negocios').insert(payload).select().single();
+    btn.disabled=false; btn.textContent=editingId ? 'Actualizar negocio' : 'Guardar en Mapa';
+    if (result.error) { alert('No se pudo guardar el negocio en Supabase: '+result.error.message); return; }
+    document.getElementById('clientForm').reset(); closeModal(); editingId=null; await loadBusinesses();
+    const saved=fromRow(result.data); focusClient(saved.id);
   }
-}
   async function editClient(id) {
     if (!isAdmin) return; const c=clients.find(x=>String(x.id)===String(id)); if(!c) return;
     editingId=c.id;
