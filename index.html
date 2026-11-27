@@ -615,7 +615,7 @@ async function uploadBusinessImage(file, folder) {
     const query = document.getElementById('searchInput').value.toLowerCase().trim();
     const listEl = document.getElementById('directoryList');
     listEl.innerHTML = '';
-    if (!mapLoaded) return;
+   
     Object.values(markers).forEach(item => item.remove()); markers = {};
     const filtered = clients.filter(c => {
       const matchCat = activeCategory === 'Todos' || c.category === activeCategory;
@@ -629,9 +629,10 @@ async function uploadBusinessImage(file, folder) {
       const logo = c.logo ? `<img src="${safeText(c.logo)}" alt="Logotipo de ${safeText(c.name)}" style="max-width:76px;max-height:54px;object-fit:contain;margin-bottom:8px">` : '';
       card.innerHTML = `${logo}<div class="biz-cat">${safeText(c.category)}</div><div class="biz-title">${safeText(c.name)}</div><div class="biz-desc">${safeText(c.desc)}</div><div class="biz-meta"><span>📍 ${safeText(c.address)}</span><span>📞 ${safeText(c.phone || c.whatsapp)}</span>${c.hours ? `<span>🕒 ${safeText(c.hours)}</span>` : ''}</div><div class="biz-actions"><a class="btn btn-wa btn-xs" href="https://wa.me/52${encodeURIComponent(String(c.whatsapp||'').replace(/\D/g,''))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">WhatsApp</a><a class="btn btn-cobalt btn-xs" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Cómo llegar</a>${c.website ? `<a class="btn btn-cobalt btn-xs" href="${safeText(c.website)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Sitio web</a>` : ''}${isAdmin ? `<button class="btn btn-cobalt btn-xs" onclick="event.stopPropagation();editClient('${c.id}')">Editar</button><button class="btn btn-xs" style="background:#fee2e2;color:#991b1b" onclick="event.stopPropagation();deleteClient('${c.id}')">Eliminar</button>` : ''}</div>`;
       card.onclick = () => focusClient(c.id); listEl.appendChild(card);
-      
+      if (mapLoaded) {const popup = new maplibregl.Popup({offset:24}).setHTML(`<div style="min-width:210px"><strong>${safeText(c.name)}</strong><p>${safeText(c.category)}</p>${c.logo ? `<img src="${safeText(c.logo)}" alt="Logotipo" style="width:100%;max-height:110px;object-fit:contain;margin:6px 0">` : ''}${(c.photos || []).slice(0,5).map(url => `<img src="${safeText(url)}" alt="Fotografía" style="width:100%;max-height:130px;object-fit:cover;border-radius:8px;margin:4px 0">`).join('')}<p>${safeText(c.address)}</p><a href="https://wa.me/52${encodeURIComponent(String(c.whatsapp||'').replace(/\D/g,''))}" target="_blank" rel="noopener">Contactar por WhatsApp</a></div>`);
       const marker = new maplibregl.Marker({color:'#1d4ed8'}).setLngLat([c.lng,c.lat]).setPopup(popup).addTo(map);
       markers[c.id] = marker;
+     }                 
     });
   }
   function focusClient(id) { const c = clients.find(x => String(x.id) === String(id)); if (!c || !markers[id]) return; map.flyTo({center:[c.lng,c.lat],zoom:17}); markers[id].togglePopup(); }
@@ -737,8 +738,9 @@ async function uploadBusinessImage(file, folder) {
     btn.disabled = false;
     btn.textContent = originalText;
   }
+   
 }
-  }
+  
   async function editClient(id) {
     if (!isAdmin) return; const c=clients.find(x=>String(x.id)===String(id)); if(!c) return;
     editingId=c.id;
