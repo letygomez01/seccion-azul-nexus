@@ -537,13 +537,13 @@ async function uploadBusinessImage(file, folder) {
   const filePath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`;
 
   const { data, error } = await db.storage
-    .from('sección-azul')
+    .from('seccion-azul')
     .upload(filePath, file);
 
   if (error) throw error;
 
   const { data: publicData } = db.storage
-    .from('sección-azul')
+    .from('seccion-azul')
     .getPublicUrl(data.path);
 
   return publicData.publicUrl;
