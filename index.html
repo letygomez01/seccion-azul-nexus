@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NEXUS SOLUCIÓNES | Sección Azul - Directorio y Mapa Digital Loreto, B.C.S.</title>
+  <title>NEXUS SOLUCIÓNES | Seccion Azul - Directorio y Mapa Digital Loreto, B.C.S.</title>
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -296,7 +296,7 @@
 <header>
   <div class="header-inner">
     <div>
-      <span class="brand-badge">Sección Azul • Directorio Oficial</span>
+      <span class="brand-badge">Seccion Azul • Directorio Oficial</span>
       <h1>NEXUS SOLUCIÓNES — Loreto, B.C.S.</h1>
       <p>Directorio Comercial, Servicios Profesionales y Mapa Digital Interactivo</p>
     </div>
@@ -352,7 +352,7 @@
 
 <section class="packages-section">
   <div class="section-title-box">
-    <h2>Espacios Publicitarios en la Sección Azul NEXUS</h2>
+    <h2>Espacios Publicitarios en la Seccion Azul NEXUS</h2>
     <p>Posiciona tu negocio frente a residentes, inversionistas y visitantes en Loreto y Baja California Sur</p>
   </div>
   <div class="packages-grid">
@@ -362,7 +362,7 @@
         <h3>Pin Básico en Directorio</h3>
         <ul>
           <li>Ubicación exacta en el Mapa Digital de Loreto</li>
-          <li>Ficha comercial en la Sección Azul por categoría</li>
+          <li>Ficha comercial en la Seccion Azul por categoría</li>
           <li>Dirección, horario y botón directo a llamada</li>
         </ul>
       </div>
@@ -400,7 +400,7 @@
 
 <div class="modal-backdrop" id="loginModal">
   <div class="modal-box">
-    <h3>Acceso privado · Sección Azul</h3>
+    <h3>Acceso privado · Seccion Azul</h3>
     <form id="loginForm" onsubmit="loginAdmin(event)">
       <div class="form-group"><label>Correo de administradora</label><input type="email" id="adminEmail" required autocomplete="username" /></div>
       <div class="form-group"><label>Contraseña</label><input type="password" id="adminPassword" required autocomplete="current-password" /></div>
@@ -415,14 +415,14 @@
 
 <div class="modal-backdrop" id="addModal">
   <div class="modal-box">
-    <h3>Registrar Cliente en Sección Azul</h3>
+    <h3>Registrar Cliente en Seccion Azul</h3>
     <form id="clientForm" onsubmit="saveClient(event)">
       <div class="form-group">
         <label>Nombre del Negocio o Servicio</label>
         <input type="text" id="cName" required placeholder="Ej. Ferretería del Centro" />
       </div>
       <div class="form-group">
-        <label>Categoría (Sección Azul)</label>
+        <label>Categoría (Seccion Azul)</label>
         <select id="cCat">
          <option value="Gobierno">Gobierno</option>
 <option value="Bancos y Servicios Financieros">Bancos y Servicios Financieros</option>
@@ -514,7 +514,7 @@
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // CONFIGURACIÓN DEL PROYECTO SECCIÓN AZUL
+  // CONFIGURACIÓN DEL PROYECTO SECCION AZUL
   const SUPABASE_URL = 'https://hoanagwkyegifwirskkv.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_tmJsNBEaNF8hEouNx4l2Iw_RjS8pf2t';
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -644,7 +644,7 @@ async function uploadBusinessImage(file, folder) {
     const {error} = await db.auth.signInWithPassword({email,password});
     if (error) { msg.textContent='No se pudo iniciar sesión. Verifica tu correo y contraseña.'; return; }
     await refreshAdminStatus();
-    if (!isAdmin) { await db.auth.signOut(); await refreshAdminStatus(); msg.textContent='Esta cuenta no está autorizada como administradora de Sección Azul.'; return; }
+    if (!isAdmin) { await db.auth.signOut(); await refreshAdminStatus(); msg.textContent='Esta cuenta no está autorizada como administradora de Seccion Azul.'; return; }
     document.getElementById('loginForm').reset(); closeLogin();
   }
   async function signOutAdmin() { await db.auth.signOut(); await refreshAdminStatus(); }
@@ -769,4 +769,4 @@ async function uploadBusinessImage(file, folder) {
 </script>
 </body>
 </html>
-<!-- Sección Azul Nexus -->
+<!-- Seccion Azul Nexus -->
